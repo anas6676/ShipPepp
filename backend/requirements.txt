@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+pdfplumber
+opencv-python-headless
+pytesseract
+brother_ql
+Pillow==9.5.0
+SQLAlchemy
+pdf2image

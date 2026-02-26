@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 transition-colors duration-200 antialiased;
+  }
+  
+  .dark body {
+    @apply bg-dark-bg text-slate-100;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+  
+  .dark .glass-panel {
+    @apply bg-dark-surface/80 border-dark-border shadow-2xl;
+  }
+
+  /* Micro-animations */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+}

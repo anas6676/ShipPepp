@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ink_backend
+    privileged: true # Required for USB access in some cases
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /dev/bus/usb:/dev/bus/usb # Passthrough USB devices to container
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ink_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+    depends_on:
+      - backend
