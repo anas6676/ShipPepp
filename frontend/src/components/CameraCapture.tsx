@@ -40,16 +40,34 @@ export default function CameraCapture({ onSuccess }: CameraCaptureProps) {
         setError(null);
 
         try {
-            // Convert base64 to Blob
+            // Convert base64 to Blob and cap size to avoid sending a huge raw phone photo
             const res = await fetch(imageSrc);
             const blob = await res.blob();
-            const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
 
+            // Resize on canvas if needed — keep max 1800px on longest side
+            let finalBlob: Blob = blob;
+            const bitmap = await createImageBitmap(blob);
+            const MAX = 1800;
+            if (Math.max(bitmap.width, bitmap.height) > MAX) {
+                const scale = MAX / Math.max(bitmap.width, bitmap.height);
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(bitmap.width * scale);
+                canvas.height = Math.round(bitmap.height * scale);
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                finalBlob = await new Promise<Blob>(resolve =>
+                    canvas.toBlob(b => resolve(b!), 'image/jpeg', 0.85)
+                );
+            }
+            bitmap.close();
+
+            const file = new File([finalBlob], "camera_capture.jpg", { type: "image/jpeg" });
             const formData = new FormData();
             formData.append('file', file);
 
             const response = await axios.post(`/api/extract/image`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 60000  // 60 second timeout
             });
 
             if (response.data.success) {
@@ -57,8 +75,14 @@ export default function CameraCapture({ onSuccess }: CameraCaptureProps) {
             } else {
                 setError(response.data.error || "Failed to extract data from image.");
             }
-        } catch (err) {
-            setError("Network error connecting to the backend.");
+        } catch (err: any) {
+            if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+                setError("OCR timed out. Please try with a clearer, well-lit photo.");
+            } else if (err.response) {
+                setError(`Server error: ${err.response.status}. Please try again.`);
+            } else {
+                setError("Network error. Make sure you are connected and try again.");
+            }
             console.error(err);
         } finally {
             setLoading(false);

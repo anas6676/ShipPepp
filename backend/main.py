@@ -77,14 +77,18 @@ async def extract_pdf(file: UploadFile = File(...)):
 @app.post("/extract/image")
 async def extract_image(file: UploadFile = File(...)):
     contents = await file.read()
-    temp_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}_{file.filename}")
-    with open(temp_path, "wb") as buffer:
+    uid = str(uuid.uuid4())
+    temp_img_path = os.path.join(UPLOAD_DIR, f"{uid}_{file.filename}")
+
+    with open(temp_img_path, "wb") as buffer:
         buffer.write(contents)
-        
+
     try:
-        extracted_data = ocr.extract_from_image(contents)
+        # OCR the original image directly — no lossy image→PDF→image round-trip
+        extracted_data = extractor.extract_from_image(contents)
         print(f"CAMERA EXTRACTION RESULT: {extracted_data}")
-        return {"success": True, "file_path": temp_path, "data": extracted_data}
+
+        return {"success": True, "file_path": temp_img_path, "data": extracted_data}
     except Exception as e:
         print(f"CAMERA EXTRACTION ERROR: {e}")
         return {"success": False, "error": str(e)}
