@@ -27,9 +27,9 @@
 [phases.build]
     dependsOn = ["install"]
     cmds = [
-        "cd frontend && npm run build",
+        "cd frontend && npx vite build",
         "mkdir -p backend/frontend",
-        "cp -r frontend/dist/* backend/frontend/"
+        "cp -rv frontend/dist/* backend/frontend/"
     ]
 
 [start]
