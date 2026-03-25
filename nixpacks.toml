@@ -20,10 +20,11 @@
 [phases.install]
     dependsOn = ["setup"]
     cmds = [
-        "pip install --upgrade pip", # You can now use pip directly
+        # REMOVED: pip install --upgrade pip
         "pip install -r backend/requirements.txt",
         "cd frontend && npm install"
     ]
+
 
 
 [phases.build]
