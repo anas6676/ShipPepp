@@ -6,7 +6,8 @@
     PORT = "8000"
 
 [phases.setup]
-    nixPkgs = ["python311", "nodejs_20"]
+    # Add python311Packages.pip here
+    nixPkgs = ["python311", "nodejs_20", "python311Packages.pip"]
     aptPkgs = [
         "tesseract-ocr", 
         "tesseract-ocr-deu", 
@@ -19,10 +20,11 @@
 [phases.install]
     dependsOn = ["setup"]
     cmds = [
-        "python -m pip install --upgrade pip",
+        "pip install --upgrade pip", # You can now use pip directly
         "pip install -r backend/requirements.txt",
         "cd frontend && npm install"
     ]
+
 
 [phases.build]
     dependsOn = ["install"]
