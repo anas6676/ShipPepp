@@ -10,10 +10,17 @@ import database, models
 from utils import extractor, ocr, printer
 from datetime import datetime
 
+from fastapi.staticfiles import StaticFiles
+
 # Create database tables
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Ink Delivery Label API")
+
+# Mount frontend static files IF the directory exists
+frontend_path = os.path.join(os.getcwd(), "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/app", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
 # Configure CORS for frontend access
 app.add_middleware(
@@ -208,7 +215,13 @@ def delete_history(id: int, db: Session = Depends(database.get_db)):
     db.commit()
     return {"success": True, "message": "Record deleted"}
 
-@app.get("/")
-def read_root():
-    return {"status": "Backend is running!"}
+# Serve frontend - THIS MUST BE LAST
+frontend_path = os.path.join(os.path.dirname(__file__), "frontend")
+if os.path.exists(frontend_path):
+    # Mount the static files for the frontend dist
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+else:
+    @app.get("/")
+    def read_root():
+        return {"status": "Backend is running! Frontend directory not found at " + frontend_path}
 
