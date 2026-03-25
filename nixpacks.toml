@@ -1,0 +1,36 @@
+# Nixpacks configuration for InkLabel Pro
+# Multi-stage build for Python backend and React frontend
+
+[variables]
+    PYTHONUNBUFFERED = "1"
+    PORT = "8000"
+
+[phases.setup]
+    nixPkgs = ["python311", "nodejs_20"]
+    aptPkgs = [
+        "tesseract-ocr", 
+        "tesseract-ocr-deu", 
+        "libgl1", 
+        "libglib2.0-0", 
+        "usbutils", 
+        "poppler-utils"
+    ]
+
+[phases.install]
+    dependsOn = ["setup"]
+    cmds = [
+        "python -m pip install --upgrade pip",
+        "pip install -r backend/requirements.txt",
+        "cd frontend && npm install"
+    ]
+
+[phases.build]
+    dependsOn = ["install"]
+    cmds = [
+        "cd frontend && npm run build",
+        "mkdir -p backend/frontend",
+        "cp -r frontend/dist/* backend/frontend/"
+    ]
+
+[start]
+    cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
